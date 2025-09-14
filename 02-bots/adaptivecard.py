@@ -6,7 +6,6 @@ import os
 load_dotenv()
 
 bot_token = os.getenv("BOT_TOKEN")
-name = os.getenv("NAME")
 email = os.getenv("EMAIL")
 
 webex = WebexAPI(bot_token)

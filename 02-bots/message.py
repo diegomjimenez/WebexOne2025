@@ -1,7 +1,16 @@
 from webexpythonsdk import WebexAPI
 
-BOT_TOKEN = "bot_token"
-NAME = "your_name"
+from webexpythonsdk import WebexAPI
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+bot_token = os.getenv("BOT_TOKEN")
+name = os.getenv("NAME")
+
+webex = WebexAPI(bot_token)
 
 def send_teams_message(bot_token, message, person_email):
     webexbot = WebexAPI(bot_token)
@@ -9,13 +18,12 @@ def send_teams_message(bot_token, message, person_email):
 
 def find_people(name :str):
     try:
-        people = webex.people.list()
-        for person in people:
-            print(f"Name: {person.displayName}, Email: {person.emails}")
+        all_people = webex.people.list(displayName=name)
+        for person in all_people:
+            return person
     except Exception as e:
         print(f"An error occurred: {e}")
 
-webex = WebexAPI(access_token=BOT_TOKEN)
-myself = find_people(name=NAME)
-for person in all_people:
-    send_teams_message(BOT_TOKEN, f"Hello {person.displayName}!", person.emails[0])
+person = find_people(name=name)
+
+send_teams_message(bot_token, f"Hello {person.displayName}!", person.emails[0])

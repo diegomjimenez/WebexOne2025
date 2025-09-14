@@ -6,7 +6,7 @@ import os
 load_dotenv()
 
 bot_token = os.getenv("BOT_TOKEN")
-name = "USERNAME"
+name = os.getenv("NAME")
 
 webex = WebexAPI(bot_token)
 

@@ -7,10 +7,12 @@ from webex_bot.webex_bot import WebexBot
 load_dotenv()
 
 bot_token = os.getenv("BOT_TOKEN")
+domain = os.getenv("DOMAIN")
 
 # Create a Bot Object
 bot = WebexBot(teams_bot_token=bot_token,
                bot_name="WebexOne2025",
+               approved_domains=domain,
                include_demo_commands=False)
 
 # Include function and add it.

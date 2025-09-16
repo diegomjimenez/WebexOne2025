@@ -6,7 +6,7 @@ import os
 load_dotenv()
 
 bot_token = os.getenv("BOT_TOKEN")
-name = os.getenv("NAME")
+email = os.getenv("EMAIL")
 
 webex = WebexAPI(bot_token)
 
@@ -18,15 +18,15 @@ def all_people():
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def find_people(name :str):
+def find_people(email :str):
     try:
-        all_people = webex.people.list(displayName=name)
+        all_people = webex.people.list(email=email)
         for person in all_people:
             print(f"Name: {person.displayName}, Email: {person.emails}")
     except Exception as e:
         print(f"An error occurred: {e}")
 
 
-find_people(name=name)
+find_people(email=email)
 
 all_people()

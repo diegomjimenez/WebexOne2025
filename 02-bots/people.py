@@ -10,23 +10,18 @@ email = os.getenv("EMAIL")
 
 webex = WebexAPI(bot_token)
 
-def all_people():
-    try:
-        all_people = webex.people.list()
-        for person in all_people:
-            print(f"Name: {person.displayName}, Email: {person.emails}")
-    except Exception as e:
-        print(f"An error occurred: {e}")
+def send_teams_message(bot_token, message, person_email):
+    webexbot = WebexAPI(bot_token)
+    webexbot.messages.create(toPersonEmail=person_email, markdown=message)
 
 def find_people(email :str):
     try:
-        all_people = webex.people.list(email=email)
-        for person in all_people:
-            print(f"Name: {person.displayName}, Email: {person.emails}")
+        people = webex.people.list(email=email)
+        for person in people:
+            return person
     except Exception as e:
         print(f"An error occurred: {e}")
 
+person = find_people(email=email)
 
-find_people(email=email)
-
-all_people()
+send_teams_message(bot_token, f"Hello {person.displayName}!", person.emails[0])

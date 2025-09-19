@@ -1,0 +1,67 @@
+"""
+Webex One 2025 - Exploring the possibilities of Webex APIs
+
+- Adam Weeks
+- Diego Manuel Jimenez Moreno
+- Phil Bellanti
+"""
+
+import os
+from dotenv import load_dotenv
+from webexpythonsdk import WebexAPI # Import the WebexAPI class from the Webex Python SDK
+
+# Load environment variables from the .env file.
+load_dotenv()
+
+# Webex Bot Token for API authentication.
+bot_token = os.getenv("BOT_TOKEN")
+# Email address for user lookup and message recipient.
+email = os.getenv("EMAIL")
+
+# Initialize the main WebexAPI client with the bot token.
+webex = WebexAPI(bot_token)
+
+def send_teams_message(bot_token: str, message: str, person_email: str):
+    """
+    Sends a direct message to a specified person via Webex Teams.
+
+    Args:
+        bot_token (str): The authentication token for the Webex bot.
+        message (str): The content of the message to send (supports Markdown).
+        person_email (str): The email address of the recipient.
+    """
+    # Initialize a new WebexAPI client for sending messages.
+    # Note: 'webex' object could potentially be reused if 'bot_token' is the same.
+    webexbot = WebexAPI(bot_token)
+    # Create a direct message to the specified person's email with the given markdown content.
+    webexbot.messages.create(toPersonEmail=person_email, markdown=message)
+
+def find_people(email_address: str):
+    """
+    Finds a person by their email address using the Webex API.
+
+    Args:
+        email_address (str): The email address of the person to find.
+
+    Returns:
+        webexpythonsdk.models.Person: The first person object found, or None if an error occurs.
+    """
+    try:
+        # List people, filtering by the provided email address.
+        people = webex.people.list(email=email_address)
+        # Return the first person object found.
+        for person in people:
+            return person
+    except Exception as e:
+        # Catch and print any exceptions that occur during the API call.
+        print(f"An error occurred while finding people by email: {e}")
+        return None
+
+# Find the person associated with the email loaded from environment variables.
+person = find_people(email_address=email)
+
+# If a person was found, send them a personalized message.
+if person:
+    send_teams_message(bot_token, f"Hello {person.displayName}!", person.emails[0])
+else:
+    print(f"Could not find a person with email: {email}. Message not sent.")

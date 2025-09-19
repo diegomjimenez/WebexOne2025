@@ -1,17 +1,8 @@
-"""                _               
-  __      _____| |__   _____  __
-  \ \ /\ / / _ \ '_ \ / _ \ \/ /
-   \ V  V /  __/ |_) |  __/>  <         @WebexDevs
-    \_/\_/ \___|_.__/ \___/_/\_\
-
-"""
-
-# -*- coding:utf-8 -*-
-from webbrowser import get
 import requests
 import json
 import os
 import datetime
+from dotenv import load_dotenv
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -22,10 +13,13 @@ impersonation functionality set in the create meeting API call that is happening
 hostEmail parameter being set. 
 replace the below values once the service app is registered and the app is authorized by an org admin
 '''
-clientID = "YOUR CLIENT ID HERE"
-secretID = "YOUR CLIENT SECRET HERE"
-access_token = 'ACCESS TOKEN POST ADMIN AUTHORIZATION'
-refresh_token = 'REFRESH TOKEN POST ADMIN AUTHORIZATION'
+# Load environment variables from the .env file
+load_dotenv()
+
+clientID = os.getenv("CLIENTID") # Client ID for your Webex service app
+secretID = os.getenv("SECRETID") # Client Secret for your Webex service app
+access_token = os.getenv("WEBEX_ACCESS_TOKEN") # Access token obtained after admin authorization
+refresh_token = os.getenv("REFRESH_TOKEN") # Refresh token obtained after admin authorization
 
 """
 Function Name : get_tokens_refresh()

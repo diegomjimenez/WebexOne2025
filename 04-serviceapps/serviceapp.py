@@ -1,9 +1,18 @@
+"""
+Webex One 2025 - Exploring the possibilities of Webex APIs
+
+- Adam Weeks
+- Diego Manuel Jimenez Moreno
+- Phil Bellanti
+"""
+
 import requests
 import json
 import os
 import datetime
 from dotenv import load_dotenv
 
+# This environment variable is often set for local development to allow insecure HTTP for OAuth.
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 '''
@@ -40,7 +49,7 @@ def get_tokens_refresh():
                     "refresh_token={2}").format(clientID, secretID, refresh_token)
     req = requests.post(url=url, data=payload, headers=headers)
     results = json.loads(req.text)
-    #print(results)
+
     print("Token returned in refresh result : ", results["access_token"])
     print("Refresh Token returned in refresh result : ", results["refresh_token"])
     return results["access_token"], results["refresh_token"]
@@ -52,21 +61,20 @@ Description : This is a function that uses the access_token
               a webex organization.
 """
 def create_meeting() :
-    # 24 Hours from Now
+    # Calculate meeting start and end times (24 and 25 hours from now, respectively)
     my_date_start = (datetime.datetime.now() + datetime.timedelta(hours=24)).replace(microsecond=0).isoformat()
-    # 25 Hours from Now
     my_date_end = (datetime.datetime.now() + datetime.timedelta(hours=25)).replace(microsecond=0).isoformat()
 
     body = {
-    'title': 'Example Meeting Title',  # String, Required | Meeting title. The title can be a maximum of 128 characters long.
+    'title': 'Example Meeting Title',                  # String, Required | Meeting title. The title can be a maximum of 128 characters long.
     'start': my_date_start,                            # String, Required | https://en.wikipedia.org/wiki/ISO_8601 format
     'end':   my_date_end,                              # String, Required | Replace the start/end with the times you'd like
     'hostEmail' : 'A sub users email'
     }
 
     headers = {
-        'Authorization': f'Bearer {access_token}', # https://oauth.net/2/bearer-tokens/
-        'Content-Type': 'application/json',               # https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON
+        'Authorization': f'Bearer {access_token}',         # https://oauth.net/2/bearer-tokens/
+        'Content-Type': 'application/json',                # https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Objects/JSON
     }
 
     response = requests.post('https://webexapis.com/v1/meetings', headers=headers, data=json.dumps(body)) # https://developer.webex.com/docs/meetings

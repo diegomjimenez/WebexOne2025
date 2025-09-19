@@ -29,6 +29,7 @@ clientID = os.getenv("CLIENTID") # Client ID for your Webex service app
 secretID = os.getenv("SECRETID") # Client Secret for your Webex service app
 access_token = os.getenv("WEBEX_ACCESS_TOKEN") # Access token obtained after admin authorization
 refresh_token = os.getenv("REFRESH_TOKEN") # Refresh token obtained after admin authorization
+email = os.getenv("EMAIL") # Email address of the host for meeting creation.
 
 """
 Function Name : get_tokens_refresh()
@@ -69,7 +70,7 @@ def create_meeting() :
     'title': 'Example Meeting Title',                  # String, Required | Meeting title. The title can be a maximum of 128 characters long.
     'start': my_date_start,                            # String, Required | https://en.wikipedia.org/wiki/ISO_8601 format
     'end':   my_date_end,                              # String, Required | Replace the start/end with the times you'd like
-    'hostEmail' : 'A sub users email'
+    'hostEmail' : email
     }
 
     headers = {

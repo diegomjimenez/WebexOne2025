@@ -22,7 +22,6 @@ bot_token = os.getenv("BOT_TOKEN")
 # Approved domain for bot interactions.
 domain = os.getenv("DOMAIN")
 # Email address (potentially for specific use cases within commands).
-email = os.getenv("EMAIL")
 
 # Create a Webex Bot object.
 bot = WebexBot(teams_bot_token=bot_token,  # Authenticate the bot with the provided token.

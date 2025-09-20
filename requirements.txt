@@ -1,3 +1,5 @@
 webexpythonsdk
 dotenv
 webex_bot
+flask
+requests

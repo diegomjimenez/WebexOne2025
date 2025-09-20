@@ -28,7 +28,8 @@ class AutoProvisioning(Command):
         super().__init__(
             command_keyword="provision",
             help_message="Provision your new IP Phone",
-            chained_commands=[ProvisionCallback()])
+            chained_commands=[ProvisionCallback()],
+            delete_previous_message=True)
 
     def execute(self, message, attachment_actions, activity):
         """

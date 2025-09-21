@@ -31,7 +31,6 @@ def send_teams_message(bot_token: str, message: str, person_email: str):
         person_email (str): The email address of the recipient.
     """
     # Initialize a new WebexAPI client for sending messages.
-    # Note: 'webex' object could potentially be reused if 'bot_token' is the same.
     webexbot = WebexAPI(bot_token)
     # Create a direct message to the specified person's email with the given markdown content.
     webexbot.messages.create(toPersonEmail=person_email, markdown=message)

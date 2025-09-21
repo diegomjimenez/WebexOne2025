@@ -38,41 +38,37 @@ webex.messages.create(toPersonEmail=email, text="Your client does not support Ad
 
 '''
 # Example Adaptive Card structure (commented out for reference).
-card_example = {
-    "contentType": "application/vnd.microsoft.card.adaptive",
-    "content":
+card_content_example = {
+    "type": "AdaptiveCard",
+    "body": [
         {
-        "type": "AdaptiveCard",
-        "body": [
-            {
-                "type": "ColumnSet",
-                "columns": [
-                    {
-                        "type": "Column",
-                        "items": [
-                            {
-                                "type": "TextBlock",
-                                "weight": "Bolder",
-                                "text": "WebexOne",
-                                "horizontalAlignment": "Left",
-                                "wrap": True,
-                                "color": "Light",
-                                "size": "Large",
-                                "spacing": "Small"
-                            }
-                        ],
-                         "width": "stretch"
-                    }
-                ]
-            },
-            {
-                "type": "TextBlock",
-                "text": "This is my first Adaptive Card!",
-                "wrap": True
-            }
-        ],
-        "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
-        "version": "1.3"
-    }
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "weight": "Bolder",
+                            "text": "WebexOne",
+                            "horizontalAlignment": "Left",
+                            "wrap": True,
+                            "color": "Light",
+                            "size": "Large",
+                            "spacing": "Small"
+                        }
+                    ],
+                        "width": "stretch"
+                }
+            ]
+        },
+        {
+            "type": "TextBlock",
+            "text": "This is my first Adaptive Card!",
+            "wrap": True
+        }
+    ],
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.3"
 }
 '''

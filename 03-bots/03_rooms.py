@@ -54,6 +54,7 @@ def add_person_to_room(room_id: str, person_email: str):
     try:
         # 1. Find the user by email to get their person ID
         print(f"Attempting to find user with email: '{person_email}'...")
+        # webex.people.list() returns a GeneratorContainer, which is iterable.
         found_people = list(webex.people.list(email=person_email))
         
         if found_people:

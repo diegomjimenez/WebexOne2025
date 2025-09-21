@@ -39,7 +39,7 @@ class SendMessage(Command):
         super().__init__(
             command_keyword="message",
             help_message="Send Hello!",
-            delete_previous_message=True)
+            delete_previous_message=True)     # Deletes the Adaptive Card message after submission.
 
     def execute(self, message, attachment_actions, activity):
         """

@@ -8,7 +8,7 @@ Webex One 2025 - Exploring the possibilities of Webex APIs
 
 import os
 from dotenv import load_dotenv
-from webexpythonsdk import WebexAPI
+from webexpythonsdk import WebexAPI # Import the WebexAPI class from the Webex Python SDK
 
 # Load environment variables from the .env file.
 load_dotenv()
@@ -28,9 +28,10 @@ def all_people():
     """
     try:
         # List all people in the organization.
-        all_people = webex.people.list()
-        # Iterate through the list of people and print their details.
-        for person in all_people:
+        # webex.people.list() returns a GeneratorContainer, which is iterable.
+        all_people_iterator = webex.people.list()
+        # Iterate through the people and print their details.
+        for person in all_people_iterator:
             print(f"Name: {person.displayName}, Email: {person.emails}")
     except Exception as e:
         # Catch and print any exceptions that occur during the API call.
@@ -46,9 +47,10 @@ def find_people(email_address: str):
     """
     try:
         # List people, filtering by the provided email address.
-        found_people = webex.people.list(email=email_address)
+        # webex.people.list() returns a GeneratorContainer, which is iterable.
+        found_people_iterator = webex.people.list(email=email_address)
         # Iterate through the (potentially single) person found and print their details.
-        for person in found_people:
+        for person in found_people_iterator:
             print(f"Name: {person.displayName}, Email: {person.emails}")
     except Exception as e:
         # Catch and print any exceptions that occur during the API call.

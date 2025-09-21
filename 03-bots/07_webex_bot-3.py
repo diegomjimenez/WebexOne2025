@@ -80,7 +80,8 @@ class AskMessage(Command):
         super().__init__(
             command_keyword="message",      # The keyword users type to activate this command.
             help_message="Send Message",    # The help text displayed for this command.
-            chained_commands=[SendMessage()]) # Links this command to the SendMessage callback for card submissions.
+            chained_commands=[SendMessage()], # Links this command to the SendMessage callback for card submissions.
+            delete_previous_message=True)   # Deletes the Adaptive Card message after submission.
 
     def execute(self, message, attachment_actions, activity):
         """

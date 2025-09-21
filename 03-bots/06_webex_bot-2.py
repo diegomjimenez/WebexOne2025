@@ -38,7 +38,8 @@ class SendMessage(Command):
         # Users will type '/message' to invoke this command.
         super().__init__(
             command_keyword="message",
-            help_message="Send Hello!")
+            help_message="Send Hello!",
+            delete_previous_message=True)
 
     def execute(self, message, attachment_actions, activity):
         """

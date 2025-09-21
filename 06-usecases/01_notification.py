@@ -155,7 +155,7 @@ class UserMessage(Command):
 
     def execute(self, message, attachment_actions, activity):
         # Get the personId of the user who typed the command.
-        sender_person_id = message.personId
+        sender_person_id = attachment_actions.personId
 
         # --- Access Check ---
         print(f"DEBUG: UserMessage command triggered by person ID: {sender_person_id}")
@@ -223,7 +223,7 @@ class OrganizationMessage(Command):
 
     def execute(self, message, attachment_actions, activity):
         # Get the personId of the user who typed the command.
-        sender_person_id = message.personId
+        sender_person_id = attachment_actions.personId
 
         # --- Access Check ---
         print(f"DEBUG: OrganizationMessage command triggered by person ID: {sender_person_id}")

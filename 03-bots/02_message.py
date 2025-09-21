@@ -44,14 +44,19 @@ def find_people(email_address: str):
         email_address (str): The email address of the person to find.
 
     Returns:
-        webexpythonsdk.models.Person: The first person object found, or None if an error occurs.
+        webexpythonsdk.models.Person: The first person object found, or None if an error occurs or no person is found.
     """
     try:
         # List people, filtering by the provided email address.
-        people = webex.people.list(email=email_address)
+        # webex.people.list() returns a GeneratorContainer, so convert it to a list for indexing.
+        found_people = list(webex.people.list(email=email_address))
+        
         # Return the first person object found.
-        for person in people:
-            return person
+        if found_people:
+            return found_people[0]
+        else:
+            print(f"No person found with email: {email_address}.")
+            return None
     except Exception as e:
         # Catch and print any exceptions that occur during the API call.
         print(f"An error occurred while finding people by email: {e}")

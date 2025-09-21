@@ -135,9 +135,6 @@ class AskMessage(Command):
 # Add the custom SendMessage command to the bot.
 # This registers the callback command so it can be triggered by Adaptive Card submissions.
 bot.add_command(SendMessage())
-# Add the custom AskMessage command to the bot.
-# This registers the command that users will type (e.g., '/message') to initiate the interaction.
-bot.add_command(AskMessage())
 
 # Start the bot and make it listen for incoming messages.
 # This call is typically blocking and keeps the bot running, waiting for commands or card submissions.

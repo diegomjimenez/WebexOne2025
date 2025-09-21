@@ -8,94 +8,164 @@ Webex One 2025 - Exploring the possibilities of Webex APIs
 
 import os
 from dotenv import load_dotenv
-from webex_bot.webex_bot import WebexBot # Import the main WebexBot class.
-from webex_bot.models.command import Command # Import the Command base class for creating custom commands.
-from webex_bot.models.response import Response
-from webex_bot.formatting import quote_info
-from webexpythonsdk import WebexAPI # Import the Webex API SDK for direct API calls.
+from webex_bot.webex_bot import WebexBot  # Import the main WebexBot class for creating and managing the bot.
+from webex_bot.models.command import Command  # Import the Command base class for creating custom bot commands.
+from webex_bot.models.response import Response  # Import Response for sending rich replies, like Adaptive Cards.
+from webex_bot.formatting import quote_info  # Import quote_info for formatting messages as quoted text.
+from webexpythonsdk import WebexAPI  # Import the Webex API SDK for making direct Webex API calls.
 
 # Load environment variables from the .env file.
 load_dotenv()
 
+# Webex Bot Token for authentication with the Webex API.
 bot_token = os.getenv("BOT_TOKEN")
+# Approved domain for bot interactions.
 domain = os.getenv("DOMAIN")
+# Access token for broader API operations (e.g., listing all people in an org).
 access_token = os.getenv("WEBEX_ACCESS_TOKEN")
+# The specific email address that is allowed to execute restricted commands.
+email = os.getenv("EMAIL")
+
+# Initialize the global WebexAPI client with the bot token.
+webex = WebexAPI(bot_token)
 
 # Create a Webex Bot object.
-bot = WebexBot(teams_bot_token=bot_token,         # Authenticate the bot with the provided token.
+bot = WebexBot(teams_bot_token=bot_token,         # Authenticate the bot using its token.
                bot_name="WebexOne2025",            # Assign a name to the bot.
-               approved_domains=domain,            # Restrict bot interaction to users from this domain.
-               include_demo_commands=False)        # Exclude default demonstration commands.
+               approved_domains=domain,            # Set an approved domain to restrict bot usage.
+               include_demo_commands=False)        # Exclude default demonstration commands for a cleaner bot.
+
+def is_allowed_sender(person_id: str) -> bool:
+    """
+    Checks if the user identified by person_id has an email matching ALLOWED_SENDER_EMAIL.
+
+    Args:
+        person_id (str): The ID of the person to check.
+
+    Returns:
+        bool: True if the user's email matches ALLOWED_SENDER_EMAIL, False otherwise.
+    """
+    try:
+        # Retrieve the person's details using their ID.
+        person = webex.people.get(person_id)
+        print(f"DEBUG: Checking sender {person.emails[0]} (ID: {person_id}) against allowed email {email}")
+        # Compare the user's primary email (or any email) to the allowed email.
+        # Case-insensitive comparison is good practice.
+        if person.emails and email.lower() in [e.lower() for e in person.emails]:
+            return True
+        return False
+    except Exception as e:
+        print(f"DEBUG: Error retrieving person details for {person_id} for access check: {e}")
+        return False
     
 class SendMessageOrganization(Command):
-
+    """
+    Callback command for sending a message to all users in the organization.
+    Only the user specified by ALLOWED_SENDER_EMAIL can execute this.
+    """
     def __init__(self):
         super().__init__(
-            card_callback_keyword="organization_callback",
-            delete_previous_message=True)        
+            card_callback_keyword="organization_callback", # Keyword for Adaptive Card submission.
+            delete_previous_message=True)                 # Deletes the card after submission.
 
     def execute(self, message, attachment_actions, activity):
-        message = attachment_actions.inputs.get("message")
+        # Extract the message content from the submitted Adaptive Card.
+        message_content = attachment_actions.inputs.get("message")
+        # Get the personId of the user who submitted the card.
+        sender_person_id = attachment_actions.personId
 
-        webex = WebexAPI(access_token=access_token)
-        webexbot = WebexAPI(bot_token)
+        # --- Access Check ---
+        print(f"DEBUG: SendMessageOrganization callback triggered by person ID: {sender_person_id}")
+        if not is_allowed_sender(sender_person_id):
+            print(f"DEBUG: Unauthorized execution attempt by {sender_person_id}.")
+            return quote_info("Error: You are not authorized to send messages to the entire organization.")
+        print(f"DEBUG: Authorized sender {sender_person_id} executing SendMessageOrganization.")
+        # --- End Access Check ---
+
+        # Initialize WebexAPI clients. One with the access_token for listing people,
+        # and another with the bot_token for sending messages.
+        # Note: webex_admin requires a full access_token, not a bot_token, to list all org people.
+        webex_for_org_list = WebexAPI(access_token=access_token)
+        webexbot_for_sending = WebexAPI(bot_token)
 
         try:
-            all_people = webex.people.list()
+            # List all people in the organization using the admin access_token.
+            # Convert GeneratorContainer to list to iterate.
+            all_people = list(webex_for_org_list.people.list())
+            print(f"DEBUG: Found {len(all_people)} people in the organization.")
             for person in all_people:
-                webexbot.messages.create(toPersonEmail=person.emails[0], markdown=message)
+                # Send the message to each person.
+                webexbot_for_sending.messages.create(toPersonEmail=person.emails[0], markdown=message_content)
+                print(f"DEBUG: Message sent to {person.emails[0]}")
 
-            return quote_info("Messages sent")
+            return quote_info("Messages sent to all users in the organization.")
         except Exception as e:
+            print(f"DEBUG: Exception in SendMessageOrganization: {e}")
             return quote_info(f"There was an exception when trying to send the messages:\n {e}")
 
 class SendMessageUser(Command):
-
+    """
+    Callback command for sending a message to a specific user.
+    Only the user specified by ALLOWED_SENDER_EMAIL can execute this.
+    """
     def __init__(self):
         super().__init__(
-            card_callback_keyword="user_callback",
-            delete_previous_message=True)
+            card_callback_keyword="user_callback", # Keyword for Adaptive Card submission.
+            delete_previous_message=True)          # Deletes the card after submission.
 
     def execute(self, message, attachment_actions, activity):
-        message = attachment_actions.inputs.get("message")
-        user = attachment_actions.inputs.get("user")
-        email = user + "@" + domain
+        # Extract the message content and target username from the submitted Adaptive Card.
+        message_content = attachment_actions.inputs.get("message")
+        user_id_part = attachment_actions.inputs.get("user")
+        target_email = user_id_part + "@" + domain
+        # Get the personId of the user who submitted the card.
+        sender_person_id = attachment_actions.personId
+
+        # --- Access Check ---
+        print(f"DEBUG: SendMessageUser callback triggered by person ID: {sender_person_id}")
+        if not is_allowed_sender(sender_person_id):
+            print(f"DEBUG: Unauthorized execution attempt by {sender_person_id}.")
+            return quote_info("Error: You are not authorized to send messages to specific users.")
+        print(f"DEBUG: Authorized sender {sender_person_id} executing SendMessageUser.")
+        # --- End Access Check ---
 
         try: 
             # Initialize a WebexAPI client with the bot token to send a message.
-            webexbot = WebexAPI(bot_token)
-            # Create a direct message to the person using their ID.
-            webexbot.messages.create(toPersonEmail=email, markdown=message)
+            webexbot_for_sending = WebexAPI(bot_token)
+            # Create a direct message to the specified user's email.
+            webexbot_for_sending.messages.create(toPersonEmail=target_email, markdown=message_content)
+            print(f"DEBUG: Message sent to {target_email}")
 
-            return quote_info(f"Message sent to user {email}")
+            return quote_info(f"Message sent to user {target_email}")
         except Exception as e:
+            print(f"DEBUG: Exception in SendMessageUser: {e}")
             return quote_info(f"There was an exception when trying to send the messages:\n {e}")
 
 class UserMessage(Command):
     """
-    A custom bot command to send a direct message to the user who triggered the command.
+    Command to present an Adaptive Card for sending a message to a specific user.
+    Only the user specified by ALLOWED_SENDER_EMAIL can execute this.
     """
     def __init__(self):
-        # Initialize the command with its keyword and help message.
         super().__init__(
-            command_keyword="message_user",
-            help_message="Send Message to User",
-            delete_previous_message=True,
-            chained_commands=[SendMessageUser()])
+            command_keyword="message_user",        # Keyword for user to type.
+            help_message="Send Message to User",   # Help message for the command.
+            delete_previous_message=True,          # Deletes the command message after card is sent.
+            chained_commands=[SendMessageUser()])  # Links to SendMessageUser for card submission.
 
     def execute(self, message, attachment_actions, activity):
-        """
-        Executes the 'message' command. Sends a "Hello!" message back to the user.
+        # Get the personId of the user who typed the command.
+        sender_person_id = message.personId
 
-        Args:
-            message (str): The message content (command keyword already stripped).
-            attachment_actions (obj): Object containing details about card actions.
-            activity (obj): Raw activity object from Webex.
+        # --- Access Check ---
+        print(f"DEBUG: UserMessage command triggered by person ID: {sender_person_id}")
+        if not is_allowed_sender(sender_person_id):
+            print(f"DEBUG: Unauthorized execution attempt by {sender_person_id}.")
+            return quote_info("Error: You are not authorized to use this command.")
+        print(f"DEBUG: Authorized sender {sender_person_id} executing UserMessage.")
+        # --- End Access Check ---
 
-        Returns:
-            str: A confirmation message to be sent back to the user.
-        """
-
+        # Define the Adaptive Card structure for user input.
         card = {
             "contentType": "application/vnd.microsoft.card.adaptive",
             "content": {
@@ -107,7 +177,7 @@ class UserMessage(Command):
                         "id": "user",
                         "isRequired": True,
                         "errorMessage": "UserId is required",
-                        "label": "UserId:"
+                        "label": "User ID (before @domain):"
                     },
                     {
                         "type": "Input.Text",
@@ -125,44 +195,45 @@ class UserMessage(Command):
                         "type": "Action.Submit",
                         "title": "Submit",
                         "data": {
-                            "callback_keyword": "user_callback"
+                             "callback_keyword": "user_callback" # Links to SendMessageUser.
                         }
                     }
                 ]
             }
         }
 
+        # Create a Response object to send the Adaptive Card.
         response = Response()
-        response.text = "Text"
+        response.text = "Please provide user details and message:" # Fallback text.
         response.attachments = card
 
         return response
 
 class OrganizationMessage(Command):
     """
-    A custom bot command to send a direct message to the user who triggered the command.
+    Command to present an Adaptive Card for sending a message to the entire organization.
+    Only the user specified by ALLOWED_SENDER_EMAIL can execute this.
     """
     def __init__(self):
-        # Initialize the command with its keyword and help message.
         super().__init__(
-            command_keyword="message_organization",
-            help_message="Send Message to Organization",
-            chained_commands=[SendMessageOrganization()],
-            delete_previous_message=True)
+            command_keyword="message_organization",        # Keyword for user to type.
+            help_message="Send Message to Organization",   # Help message for the command.
+            chained_commands=[SendMessageOrganization()],  # Links to SendMessageOrganization for card submission.
+            delete_previous_message=True)                  # Deletes the command message after card is sent.
 
     def execute(self, message, attachment_actions, activity):
-        """
-        Executes the 'message' command. Sends a "Hello!" message back to the user.
+        # Get the personId of the user who typed the command.
+        sender_person_id = message.personId
 
-        Args:
-            message (str): The message content (command keyword already stripped).
-            attachment_actions (obj): Object containing details about card actions.
-            activity (obj): Raw activity object from Webex.
+        # --- Access Check ---
+        print(f"DEBUG: OrganizationMessage command triggered by person ID: {sender_person_id}")
+        if not is_allowed_sender(sender_person_id):
+            print(f"DEBUG: Unauthorized execution attempt by {sender_person_id}.")
+            return quote_info("Error: You are not authorized to use this command.")
+        print(f"DEBUG: Authorized sender {sender_person_id} executing OrganizationMessage.")
+        # --- End Access Check ---
 
-        Returns:
-            str: A confirmation message to be sent back to the user.
-        """
-
+        # Define the Adaptive Card structure for user input.
         card = {
             "contentType": "application/vnd.microsoft.card.adaptive",
             "content": {
@@ -174,7 +245,7 @@ class OrganizationMessage(Command):
                         "id": "message",
                         "isRequired": True,
                         "errorMessage": "Message is required",
-                        "label": "Message:"
+                        "label": "Message to send to all:"
                     }
                 ],
                 "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
@@ -184,22 +255,23 @@ class OrganizationMessage(Command):
                         "type": "Action.Submit",
                         "title": "Submit",
                         "data": {
-                            "callback_keyword": "organization_callback"
+                            "callback_keyword": "organization_callback" # Links to SendMessageOrganization.
                         }
                     }
                 ]
             }
         }
 
+        # Create a Response object to send the Adaptive Card.
         response = Response()
-        response.text = "Text"
+        response.text = "Please enter the message for the organization:" # Fallback text.
         response.attachments = card
 
         return response
 
-# Add the custom SendMessage command to the bot.
+# Add the custom commands to the bot.
 bot.add_command(OrganizationMessage())
 bot.add_command(UserMessage())
 
-# This call is typically blocking and keeps the bot running.
+# Start the bot and make it listen for incoming messages.
 bot.run()

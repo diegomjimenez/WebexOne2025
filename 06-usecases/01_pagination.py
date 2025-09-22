@@ -7,6 +7,11 @@ Webex One 2025 - Exploring the possibilities of Webex APIs
 """
 
 import requests # Import the requests library for making HTTP requests.
+import os
+from dotenv import load_dotenv # Import load_dotenv to load environment variables from .env file.
+
+# Load environment variables from the .env file.
+load_dotenv()
 
 # Access token for broader API operations (e.g., listing all people in an org).
 access_token = os.getenv("WEBEX_ACCESS_TOKEN")
@@ -51,7 +56,7 @@ try:
     # Loop to fetch all pages of people until no 'next' link is found.
     while current_url:
         print(f"\nDEBUG: Fetching page {page_number} of people.")
-        response = list_people(ACCESS_TOKEN, current_url)
+        response = list_people(access_token, current_url)
         
         # Parse the JSON response and extract the 'items' array (the list of people).
         people = response.json()["items"]

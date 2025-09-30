@@ -132,7 +132,7 @@ class AskMessage(Command):
 
         return response
 
-# Add the custom SendMessage command to the bot.
+# Add the custom AskMessage command to the bot.
 # This registers the callback command so it can be triggered by Adaptive Card submissions.
 bot.add_command(AskMessage())
 
